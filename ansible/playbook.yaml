@@ -1,0 +1,77 @@
+# ansible-playbook -i inventory.yaml playbook.yaml
+
+- name: Prepare environment 
+  hosts: nodes
+  remote_user: pi
+
+  tasks:
+  # - name: Login as root
+  #   become: yes
+  #   shell: sudo su -
+
+  - name: Run the equivalent of "apt-get update" as a separate step
+    become: yes
+    apt:
+      update_cache: yes
+
+  - name: Upgrade all packages to the latest version
+    become: yes
+    apt:
+      name: "*"
+      state: latest
+
+  - name: Install a list of packages
+    become: yes
+    apt:
+      pkg:
+      - vim
+
+  - name: Install Docker
+    become: yes
+    shell: | 
+      sudo curl -L "https://get.docker.com/" -o ./docker.sh
+      sudo bash ./docker.sh
+      sudo usermod -a -G docker pi
+
+  - name: Install Docker-compose
+    become: yes
+    shell: | 
+      sudo curl -L "https://github.com/docker/compose/releases/download/v2.1.1/docker-compose-linux-aarch64" -o /usr/local/bin/docker-compose
+      sudo chmod +x /usr/local/bin/docker-compose
+
+  - name: Prepare to install K3S
+    become: yes
+    shell: | 
+      sudo swapoff -a
+      sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+      sudo echo "cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory" > /boot/cmdline.txt
+
+  - name: Reboot a machine that might have updates to apply
+    become: yes
+    ansible.builtin.reboot:
+      reboot_timeout: 3600
+
+  - name: Install K3S (master node)
+    become: yes
+    shell: | 
+      sudo curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" sh -s -
+      sudo export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+  - name: Get k3s join token
+    become: yes
+    shell: cat /var/lib/rancher/k3s/server/node-token >> k3s_join_token.txt
+
+  - name: Install helm
+    become: yes
+    shell: sudo curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+  # - name: Install K3S with join token (rest nodes)
+  #   become: yes 
+  #   shell: | 
+  #     sudo swapoff -a
+  #     sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+  #     sudo echo "cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory" > /boot/cmdline.txt
+  #     curl -sfL https://get.k3s.io | K3S_URL=https://myserver:6443 K3S_TOKEN=mynodetoken sh -
+  #     sudo export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+  #     sudo reboot
+

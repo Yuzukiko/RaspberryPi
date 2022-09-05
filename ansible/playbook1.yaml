@@ -1,0 +1,16 @@
+- name: Prepare flux
+  hosts: nodes
+  remote_user: pi
+
+  tasks:
+  - name: Prepare flux
+    shell: | 
+      export GITHUB_TOKEN=<your-token>
+      export GITHUB_USER=<your-username>
+      flux bootstrap github \
+        --owner=$GITHUB_USER \
+        --repository=<my-repository> \
+        --path=clusters/production \
+        --personal
+
+

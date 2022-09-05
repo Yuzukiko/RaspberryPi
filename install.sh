@@ -6,8 +6,9 @@
 
 #apt update & upgrade
 sudo apt update
-sudo apt upgrade
+sudo apt upgrade -y
 
+sudo apt install vim -y
 
 
 #docker
@@ -16,8 +17,8 @@ sudo bash ./docker.sh
 sudo usermod -a -G docker pi
 
 #docker-compose
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.1.1/docker-compose-linux-aarch64" -o /usr/local/bin/docker-compose
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.1.1/docker-compose-linux-armv7" -o /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.8.0/docker-compose-linux-aarch64" -o /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.8.0/docker-compose-linux-armv7" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
 #kubernetes (microk8s) 
